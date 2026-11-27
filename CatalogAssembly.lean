@@ -1,11 +1,11 @@
 import PublishedCroot
 import CatalogSequence
 
-/-! Instantiate both hypotheses of the reduction submitted in LeftToSolve PR #4864. -/
+/-! Instantiate both hypotheses of the reduction submitted in LeftToSolve PR #5096. -/
 
 namespace CrootCatalog
 
-open OMA.R_Erdos46_erdos_46_variants_infinitely_many_disjoint_R1
+open OMA.R_Erdos46_erdos_46_variants_infinitely_many_disjoint_R2
 
 theorem firstBlock : H1 := by
   intro d hd

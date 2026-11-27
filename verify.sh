@@ -30,10 +30,10 @@ lake exe cache get
 lake build PublishedCroot FormalConjectures.ErdosProblems.«46»
 # Fetch the precise review files by commit, then compile them without editing their contents.
 raw_fork=https://raw.githubusercontent.com/LDJAI/open-math-agents
-reduction_rev=6062292c7fc234e8e2e5d91f0583fa132ed937ce
-sequence_rev=4a41fbfec1690a53a7ea59f2800e3e2e41550922
-catalog_id=Erdos46.erdos_46.variants.infinitely_many_disjoint.R1
-reduction_module=R_Erdos46_erdos_46_variants_infinitely_many_disjoint_R1
+reduction_rev=e6dc7663f0dada971031cc846e56fc6cf6dd54d1
+sequence_rev=45ee05ce40cea56fa932e2d1e206130fb6c6cd30
+catalog_id=Erdos46.erdos_46.variants.infinitely_many_disjoint.R2
+reduction_module=R_Erdos46_erdos_46_variants_infinitely_many_disjoint_R2
 mkdir -p OMAReductions
 curl -fsSL --retry 3 "$raw_fork/$reduction_rev/reductions/$catalog_id.lean" -o "OMAReductions/$reduction_module.lean"
 curl -fsSL --retry 3 "$raw_fork/$sequence_rev/proofs/$catalog_id.H2.lean" -o CatalogSequence.lean
