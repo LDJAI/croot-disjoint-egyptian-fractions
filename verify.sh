@@ -28,15 +28,38 @@ for lib in UnitFractions ErdosProblems PublishedCroot; do
 done
 lake exe cache get
 lake build PublishedCroot FormalConjectures.ErdosProblems.«46»
-lake env lean CrootDisjoint.lean | tee "$work_dir/axioms.log"
-python3 - "$work_dir/axioms.log" <<'PY'
-import pathlib, re, sys
-out = pathlib.Path(sys.argv[1]).read_text()
-match = re.search(r"'OMA\.solution' depends on axioms: \[([^\]]*)\]", out, re.S)
-if not match:
-    raise SystemExit("The kernel did not report an axiom audit for OMA.solution")
-axioms = {part.strip() for part in match[1].split(",")}
-if axioms - {"propext", "Classical.choice", "Quot.sound"}:
-    raise SystemExit(f"Unexpected axiom set: {axioms}")
-print("Verified the exact LeftToSolve target.")
-PY
+# Fetch the precise review files by commit, then compile them without editing their contents.
+raw_fork=https://raw.githubusercontent.com/LDJAI/open-math-agents
+reduction_rev=6062292c7fc234e8e2e5d91f0583fa132ed937ce
+sequence_rev=4a41fbfec1690a53a7ea59f2800e3e2e41550922
+catalog_id=Erdos46.erdos_46.variants.infinitely_many_disjoint.R1
+reduction_module=R_Erdos46_erdos_46_variants_infinitely_many_disjoint_R1
+mkdir -p OMAReductions
+curl -fsSL --retry 3 "$raw_fork/$reduction_rev/reductions/$catalog_id.lean" -o "OMAReductions/$reduction_module.lean"
+curl -fsSL --retry 3 "$raw_fork/$sequence_rev/proofs/$catalog_id.H2.lean" -o CatalogSequence.lean
+cp "$proof_dir/CatalogAssembly.lean" .
+for lib in OMAReductions CatalogSequence; do
+  printf '\n[[lean_lib]]\nname = "%s"\n' "$lib" >> lakefile.toml
+done
+
+lake env lean CrootDisjoint.lean | tee "$work_dir/full.log"
+lake build CatalogSequence
+lake env lean CatalogAssembly.lean | tee "$work_dir/catalog.log"
+python3 - "$work_dir/full.log" "$work_dir/catalog.log" <<'PYTHON'
+import pathlib
+import re
+import sys
+
+allowed = {"propext", "Classical.choice", "Quot.sound"}
+for path, names in [(sys.argv[1], ["OMA.solution"]),
+                    (sys.argv[2], ["CrootCatalog.firstBlock", "OMA.solution", "CrootCatalog.verified"])]:
+    output = pathlib.Path(path).read_text()
+    for name in names:
+        match = re.search(rf"'{re.escape(name)}' depends on axioms: \[([^\]]*)\]", output, re.S)
+        if not match:
+            raise SystemExit(f"The kernel did not report an axiom audit for {name}")
+        axioms = {part.strip() for part in match[1].split(",")}
+        if axioms - allowed:
+            raise SystemExit(f"Unexpected axioms in {name}: {axioms - allowed}")
+print("Verified the exact LeftToSolve target, both steps, and the assembled reduction.")
+PYTHON
